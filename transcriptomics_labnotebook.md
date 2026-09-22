@@ -164,3 +164,41 @@ zcat AA_F0_Rep3_2_clean.fq.gz | head -n 4 (just shows the first few lines)
 
 zcat AA_F0_Rep3_2_clean.fq.gz | wc -l (says how many times are in a program)
 ```
+
+------------------------------------------------------------------------
+
+### 9.22.2026 - Getting Github setup more
+
+# New Working Directory:
+
+/gpfs1/home/s/r/srhousto/SydHoustonEcoGenomics/Transcriptomics/mydata
+
+-   added mydata, myresults, and scripts to the transcriptomics folder
+
+-   got the data into 'mydata folder' **Working Directory**
+
+`/gpfs1/home/s/r/srhousto/eco_genomics_2026/transcriptomics`
+
+**Input Files:**
+
+`none`
+
+**Output Files:**
+
+`~/SydHoustonEcoGenomics/transciptomics_labnotebook.md`
+
+`\~/SydHoustonEcoGenomics/Transcriptomics/ahud_DESeq2_inclass.R`
+
+**Programs and Dependencies:**
+
+-   `R Version: tidyverse 4.5.1`
+
+-   `R Studio`
+
+**Scripts**
+
+-   most were copy and pasted from <https://pespenilab.github.io/Ecological-Genomics/Fall2026/tutorials/EcoGen2026_Transcriptomics3_GeneExpressionAnalysis.html>
+
+-   `\~/SydHoustonEcoGenomics/Transcriptomics/ahud_DESeq2_inclass.R`
+
+![final plots from today!](Transcriptomics/myresults/PCA_allGens.png)
