@@ -14,7 +14,7 @@
 
 -   Push notes to github
 
-**Working Directory**
+*Working Directory*
 
 `/gpfs1/home/s/r/srhousto/eco_genomics_2026/transcriptomics`
 
@@ -202,3 +202,107 @@ zcat AA_F0_Rep3_2_clean.fq.gz | wc -l (says how many times are in a program)
 -   `\~/SydHoustonEcoGenomics/Transcriptomics/ahud_DESeq2_inclass.R`
 
 ![final plots from today!](Transcriptomics/myresults/PCA_allGens.png)
+
+------------------------------------------------------------------------
+
+### 9.24.2026 - An Overview of everything so far, and some new basic R functions
+
+#1. Where things are:
+
+-   PC
+
+-   VACC (home/class directories)
+
+#2. How to move around:
+
+-   Been using bash commands
+
+#3. How to tell the computer what to do:
+
+-   bash
+
+-   R
+
+#4. How to backup and share work:
+
+-    Github
+
+<!-- -->
+
+-   Our laptop is being connected to the internet through the VACC
+
+#### We are then accessing the VACC through open on demand
+
+-   Using terminal (bash)
+
+-   RStudio (R), you can also access terminal through R studio under the "terminal" tab, "console" is R
+
+#### All of that is being pushed to Github
+
+-   For backup and sharing (the cloud)
+
+Bash - pwd
+
+R - getwd()
+
+#### Bash Uses
+
+-   moving things around
+
+-   managing files/directories
+
+-   running programs (counting lines in a file etc)
+
+-   FastP, Salmon
+
+#### Bash Commands to Know
+
+-   `pwd` : the path to your file
+-   `zcat` : print out file
+-   `head` : just the top of the data set
+-   `cd` : change directory
+    -   `..` : moves you back a directory
+    -   `.` : from where i am right now
+-   `ll` : list long, whats here?
+-   `ls` : list
+-   `history` : everything youve typed recently in that window
+-   ‘arrow up’ gives past commands
+-   ‘tab’ to complete
+-   `cp` : copy something
+-   `rm` : remove something
+-   `~` : your personal directory
+
+### R Uses
+
+-   anaylsis/statistics
+
+-   data visualization(plotting)
+
+### VACC file directory
+
+`/gpfs1/cl/biol3990/Transcriptomics/CountsMatrix`
+
+### Notes about my Github/Studio
+
+-   Got "error 5" when trying to open `SydHoustonEcoGenomics` folder - fixed by opening the project in a new window as opposed to the current tab
+
+    ```{r}
+
+    # You can use this to create a data frame, fill with coloumns and values
+    data.frame() 
+
+    # combine variables, can use inside data.frame
+    c(1, 2, 3)
+    c("M", "F")
+
+    # to see the value in a specific part of data frame
+    dataframe[coloumn,row]
+
+    # would print all of the values in the height coloumn of the student dataset
+    students$height
+
+    # gives the mean of all values in the student height coloumn
+    mean(students$height)
+    ```
+
+-   its cntrl return to run a command not command return

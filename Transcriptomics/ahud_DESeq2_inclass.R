@@ -1,5 +1,5 @@
 ## Set your working directory
-setwd("~/SydHoustonEcoGenomics/Transcriptomics/mydata")
+setwd("~/SydHoustonEcoGenomics/Transcriptomics/")
 
 ## Import the libraries that we're likely to need in this session
 
@@ -31,6 +31,7 @@ head(countsTableRound)
 #import the sample description table
 conds <- read.delim("mydata/ahud_samples_R.txt", header=TRUE, stringsAsFactors = TRUE, row.names=1)
 head(conds)
+conds
 
 ####################################################
 
