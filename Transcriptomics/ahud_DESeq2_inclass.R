@@ -1,6 +1,7 @@
 ## Set your working directory
 setwd("~/SydHoustonEcoGenomics/Transcriptomics/")
 
+
 ## Import the libraries that we're likely to need in this session
 
 library(DESeq2)
@@ -237,3 +238,17 @@ png("./myresults/PCA_allGens.png", res=300, height=5, width=5, units="in")
 ggarrange(F0, F2, F4, F11, nrow = 2, ncol=2)
 
 dev.off()
+
+# Tuesday September 29th
+
+### New Working Directory
+
+`setwd("~/SydHoustonEcoGenomics/Transcriptomics/mydata")`
+
+### The gene that was chosen to be evaluated : 
+
+####`TRINITY_DN30_c0_g2::TRINITY_DN30_c0_g2_i1::g.130::m.130`
+
+
+
+

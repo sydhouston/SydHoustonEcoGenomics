@@ -225,7 +225,7 @@ zcat AA_F0_Rep3_2_clean.fq.gz | wc -l (says how many times are in a program)
 
 #4. How to backup and share work:
 
--    Github
+-   Github
 
 <!-- -->
 
@@ -306,3 +306,58 @@ R - getwd()
     ```
 
 -   its cntrl return to run a command not command return
+
+### 9.29.2026 - Starting with differential gene expression analysis
+
+-   set a new working directory (my data instead of transcriptomics)
+
+-   created a new R script - `9.29.26 AHUD DESEQ pt 2 .R`
+
+-   checked on the results from the DESeq from last class, sorted by most to least significant
+
+### The gene that was chosen to be individually evaluated :
+
+-   `TRINITY_DN30_c0_g2::TRINITY_DN30_c0_g2_i1::g.130::m.130`
+-   was upregulated in OW (most) and OWA (second most) but downregulated in OA
+
+### MA plot
+
+-   0 line = ambient line
+
+-   dots show how different each gene is from the grey ambient condition (line)
+
+-   `plotMA(res_OWvsAM, ylim=c(-5,5))`
+
+![OW vs AM](Transcriptomics/mydata/OW%20vs%20AM%20MA%20Plot.png)
+
+### Volcano Plot
+
+-   lot more upregulated than downregulated genes
+
+![OW vs AM](Transcriptomics/mydata/OW%20vs%20AM%20Volcano%20Plot.png)
+
+### Heat Map
+
+-   make into a vst
+
+![](Transcriptomics/mydata/HeatMap.png)
+
+### Euler Plot
+
+-   Scales the sizes of the circles to match the amount of data inside of them
+
+#### Total DEGs
+
+`length(degs_OAvsAM) #602`
+
+`length(degs_OWvsAM) #5517`
+
+`length(degs_OWAvsAM) #3918`
+
+`library(eulerr)`
+
+![](Transcriptomics/mydata/Euler%20Plot.png)
+
+### Upset plot
+
+![](Transcriptomics/mydata/UpsetPlot.png)
