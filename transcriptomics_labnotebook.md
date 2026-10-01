@@ -361,3 +361,31 @@ R - getwd()
 ### Upset plot
 
 ![](Transcriptomics/mydata/UpsetPlot.png)
+
+## 9.22.2026 - End of DGEA and scatterplots!
+
+-   Only ran the code that was needed for libraries, data, filteingr the data, DESeq, and defining results dataframes
+
+    `case_when() #Basically a if-then statement but for R`
+
+-   `geom_point(alpha = 0.6, size = 1.5)` alpha is opacity, size is point size
+
+### Scatterplot
+
+![](Transcriptomics/mydata/ScatterPlot%20OW%20vs%20OWA.png){width="621"}
+
+-   Values that have a high log fold change may also not be significant because that value may not be consistent across all the replicates
+
+-   Ordering/Layering is important, put 'neither' first so that the other points that are significant layer over the points that are not
+
+-   What is Log2FoldChange? What do higher or lower values indicate?
+
+    -   Positive values (\>0) are upregulation
+
+    -   Negative Values (\<0) are downregulation
+
+    -   0 is no change
+
+-   What if we wanted to change the order of the points? What would you edit?
+
+-   What if we wanted to compare OA vs OWA instead of OW vs OWA? What would you edit?
