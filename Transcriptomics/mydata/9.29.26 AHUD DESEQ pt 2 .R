@@ -346,3 +346,22 @@ ggplot(plot_df,
     panel.grid = element_blank(),
     legend.position = "right"
   )
+
+
+##### 10.06 WORK 
+
+res_OWAvsAM.df <- as.data.frame(res_OWAvsAM)
+res_OWAvsAM.df$fullID <- rownames(res_OWAvsAM.df)
+
+parts <- strsplit(res_OWAvsAM.df$fullID, "::")
+
+res_OWAvsAM.df$shortID <- sapply(
+  parts,
+  function(x) paste(x[1:2], collapse="::")
+)
+
+write.csv(
+  res_OWAvsAM.df,
+  "myresults/F0_OWAvsAM_results.csv",
+  row.names = FALSE
+)
