@@ -389,3 +389,27 @@ R - getwd()
 -   What if we wanted to change the order of the points? What would you edit?
 
 -   What if we wanted to compare OA vs OWA instead of OW vs OWA? What would you edit?
+
+## 10.6.2026 - GO Analysis and WGCNA
+
+-   “Terms” means the function of the gene, a gene can have many “Terms” or functions.
+
+-   WGCNA = Whole Genome Co Network Analysis
+
+-   Genes vs Samples
+
+-   Creates “Modules”
+
+<!-- -->
+
+-   Created csv files for all F0 comparisions
+
+    -   `~/SydHoustonEcoGenomics/Transcriptomics/mydata/myresults`
+
+![GO Bubble plot OW vs AM from 10.06](Transcriptomics/mydata/GO Bubble Plot.png)
+
+![WGCNA Cluster Dendrogram](Transcriptomics/mydata/WGCNA Cluster Dendrogram.png)
+
+![PCA](Transcriptomics/mydata/WGCNA PCA Plot.png)
+
+![Power Graph](Transcriptomics/mydata/WGCNA Power graph.png)
