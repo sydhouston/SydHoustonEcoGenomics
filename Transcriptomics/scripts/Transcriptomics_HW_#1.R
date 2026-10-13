@@ -133,7 +133,7 @@ F0 <- ggplot(dataF0, aes(PC1, PC2)) +
   geom_point(size=10, stroke = 1.5, aes(fill=treatment, shape=treatment)) +
   xlab(paste0("PC1: ",percentVar[1],"% variance")) +
   ylab(paste0("PC2: ",percentVar[2],"% variance")) +
-  ylim(-10, 25) + xlim(-40, 10)+ # zoom for F0 with new assembly
+  ylim(-40, 25) + xlim(-50, 55)+ # zoom for F0 with new assembly
   scale_shape_manual(values=c(21,22,23,24), labels = c("Ambient", "Acidification","Warming", "OWA"))+
   scale_fill_manual(values=c('#6699CC',"#F2AD00","#00A08A", "#CC3333"), labels = c("Ambient", "Acidification","Warming", "OWA"))+
   theme_bw() +
