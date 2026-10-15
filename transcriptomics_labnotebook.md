@@ -406,10 +406,20 @@ R - getwd()
 
     -   `~/SydHoustonEcoGenomics/Transcriptomics/mydata/myresults`
 
-![GO Bubble plot OW vs AM from 10.06](Transcriptomics/mydata/GO Bubble Plot.png)
+![GO Bubble plot OW vs AM from 10.06](Transcriptomics/mydata/GO%20Bubble%20Plot.png)
 
-![WGCNA Cluster Dendrogram](Transcriptomics/mydata/WGCNA Cluster Dendrogram.png)
+![WGCNA Cluster Dendrogram](Transcriptomics/mydata/WGCNA%20Cluster%20Dendrogram.png)
 
-![PCA](Transcriptomics/mydata/WGCNA PCA Plot.png)
+![PCA](Transcriptomics/mydata/WGCNA%20PCA%20Plot.png)
 
-![Power Graph](Transcriptomics/mydata/WGCNA Power graph.png)
+![Power Graph](Transcriptomics/mydata/WGCNA%20Power%20graph.png)
+
+## 10.13.2026 - Starting Population Genomics!!! 
+
+#### Notes to start: 
+
+-   A VCF (Variant Call Format) file stores the positions in the genome where variants were found among our samples, along with every individual’s genotype at those positions. It has two parts:
+
+-   a header: lines starting with \## that record how the file was made and define every field used in it
+
+-   a body: one line per variant

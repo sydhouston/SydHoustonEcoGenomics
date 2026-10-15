@@ -118,6 +118,14 @@ summary(res_OAvsAM_F4)
 #outliers: 12, 0.048%
 #low counts: 3429, 14%
 
+# Getting the top 5 most significant genes for each and their LFC
+head(res_OAvsAM_F0[, c("log2FoldChange", "padj")], 5)
+head(res_OWvsAM_F0[, c("log2FoldChange", "padj")], 5)
+head(res_OWAvsAM_F0[, c("log2FoldChange", "padj")], 5)
+head(res_OAvsAM_F4[, c("log2FoldChange", "padj")], 5)
+head(res_OWvsAM_F4[, c("log2FoldChange", "padj")], 5)
+head(res_OWAvsAM_F4[, c("log2FoldChange", "padj")], 5)
+
 # PCA
 
 vsd <- vst(dds, blind=FALSE)
@@ -301,6 +309,20 @@ fit2 <- euler(c("OA" = 76,
 plot(fit2,  lty = 1:3, quantities = TRUE)
 
 ggarrange(fit1, fit2, nrow = 1, ncol=2)
+
+# Percentage of OWA DEGs unique to the combined treatment
+#### F0 ####
+(1133 / 3918) * 100
+# 28.91782
+#### F4 ####
+(174 / 241) * 100
+#72.19917
+
+#DEGs shared only between OW and OWA (notshared w/ OA)
+#### F0 ####
+2743 - 338
+#### F4 ####
+44 - 18
 
 ######### Scatterplots ##########
 
