@@ -8,9 +8,9 @@ date: "2026-10-13"
 knitr::opts_chunk$set(echo = T
 ```
 
-## 10.13.2026 - Starting Population Genomics!!! 
+## 10.13.2026 - Starting Population Genomics!!!
 
-#### Notes to start: 
+#### Notes to start:
 
 -   A VCF (Variant Call Format) file stores the positions in the genome where variants were found among our samples, along with every individual’s genotype at those positions. It has two parts:
 
@@ -20,4 +20,10 @@ knitr::opts_chunk$set(echo = T
 
 #### BASH
 
--   got the files
+-   got the VCF files needed to start pop gen
+
+## 10.15.2026 - 
+
+### Fixing Git 
+
+Changed .gitignore to contain pop genomics and pushing works now!
