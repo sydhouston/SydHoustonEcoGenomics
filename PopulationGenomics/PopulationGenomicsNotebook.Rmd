@@ -22,8 +22,44 @@ knitr::opts_chunk$set(echo = T
 
 -   got the VCF files needed to start pop gen
 
-## 10.15.2026 - 
+## 10.15.2026 -
 
-### Fixing Git 
+### Fixing Git
 
 Changed .gitignore to contain pop genomics and pushing works now!
+
+## 10.15.2026 - PopGen PCAs and Admixture
+
+Pruned #s:
+
+-   549850 Lg_LD_0.2.prune.in
+
+-   1271900 Lg_LD_0.2.prune.out
+
+-   1821750 total
+
+### All plots are done with SUBSETTED data
+
+![variance](myresults/PopulationStructure/variance_0.2.png)
+
+![PCA](myresults/PopulationStructure/Lg_0.2_pca.png)
+
+![PCA w/ Latitude](myresults/PopulationStructure/Lg_0.2_pca_latitude.png)
+
+![PCA and Map](myresults/PopulationStructure/Lg_0.2_pca_map.png)
+
+### Admixture
+
+![CV error](myresults/PopulationStructure/cv_error.png)
+
+-   3 would be the best to use because it has the lowest error
+
+![K1-K5 Admixture](myresults/PopulationStructure/admixture_K1-5.png)
+
+-   you would choose K2 or K3
+
+-   The K# is the same as the number of colors in the coloumns, so in K5 you can see its kindave forcing the pink to show
+
+-   In the far right, you can see that the 2 bahia populations are constantly different
+
+-   
