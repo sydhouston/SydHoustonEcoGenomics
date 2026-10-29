@@ -62,7 +62,7 @@ Pruned #s:
 
 -   In the far right, you can see that the 2 bahia populations are constantly different
 
-## 10.22.2026 - Genetic Diversity 
+## 10.22.2026 - Genetic Diversity
 
 Can be:
 
@@ -72,7 +72,7 @@ Can be:
 
 -   within a species
 
-### Metrics: 
+### Metrics:
 
 -   Heterozygosity
 
@@ -106,7 +106,7 @@ Tajimas D (Nucelotide Diversity)
 
 \<0 = excess of rare mutations, selective sweep, or when a population has rapid population expansion
 
-### Coding: 
+### Coding:
 
 -   copied
 
@@ -141,3 +141,68 @@ VCFtools version: 0.1.16
 ```
 
 ![pi (nucleotide diversity) by site](myresults/pi_by_site.png)
+
+## 10.27.2026 - Continuing with Pi Analyses and others
+
+-   Interested in sites w high diversity because if everything was netural aeveyrhting would fix or dissappear, sites w high diversity means something is keeping it at a high diversity (aka from dissappearing or fixing), so if you find a region w high doversity its because something in the genome is relative to the environment or because historically something deemed that important.
+
+![pi vs latitude dot plot](myresults/pi_vs_latitude.png)
+
+![pi along scaffold plot, (higher jump is more diversity at that allele)](myresults/pi_along_scaffold.png)
+
+![same as above but by population instead of as a whole](myresults/pi_along_scaffold_facet.png)
+
+## Tajimas D
+
+-   negative = excess of rare alleles
+-   positive = excess of common alleles
+-   negative/stabilizing selection = more positive distribution
+-   positive selection = more negative distribution
+
+![Tajimas D by site](myresults/TajD/tajimasD_by_site.png)
+
+### Heterozygosity
+
+-   heterozygosoty and pi are both used to calculate diveristy but in different ways
+
+-   need relatively high coverage to use
+
+![heterozygosity by site, hard to discern any patterns, agrees with pi calculations,](myresults/het/Ho_by_site.png)
+
+-   tightly clustered towards the right is higher, seems like slightly less in the southern sites.
+
+![F by Site](myresults/het/F_by_site.png)
+
+-   appears to be mostly centered around zero
+
+![Pairwise Fst Heatmap](myresults/pairwise_fst_heatmap.png)
+
+![Fst vs Distance Dot plot](myresults/fst_vs_distance.png)
+
+-   definitely a corralation between fst and latitude (positive)
+
+## 10.29.2026 - Baypass
+
+![Omega Tree](myresults/baypass_omega_tree.png)
+
+![Omega Heatmap](myresults/baypass_omega.png)
+
+![XtX pvalues](myresults/baypass_xtx_pvalues.png)
+
+-   P value is corrected by the number of populations
+
+-   Usually w baypass u dont use p-values
+
+![Baypass XtX Scan](myresults/baypass_xtx_scan.png)
+
+![](myresults/baypass_bf_scan.png)
+
+-   thetao_mean is average sea surface temperature
+
+![Top SNP frequency in Sea surface Temp](myresults/baypass_top_sst_snp.png)
+
+-   would expect or hope for a negative or positive correlation not just a straight line
+
+![Top SNP frequency in Latitude](myresults/baypass_top_lat_snp.png)
+
+-   more what was expected
