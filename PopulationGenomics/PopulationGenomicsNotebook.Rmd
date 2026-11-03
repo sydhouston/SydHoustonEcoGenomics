@@ -5,7 +5,7 @@ date: "2026-10-13"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## 10.13.2026 - Starting Population Genomics!!!
@@ -206,3 +206,31 @@ VCFtools version: 0.1.16
 ![Top SNP frequency in Latitude](myresults/baypass_top_lat_snp.png)
 
 -   more what was expected
+
+## 11.02.2026 - Gene Ontology
+
+### How many candidate genes do we have? 
+
+```         
+Outlier SNPs: 1822 | outlier SNPs inside genes: 701 | candidate genes: 272 
+
+"701 SNPS distributed across 272 genes""
+```
+
+-   21314 available genes, 272 significant genes
+
+-   8897 feasible genes (that can be used), 112 significant genes
+
+Interpreting XtX
+
+-   high XtX = less SNPs
+
+-   our "outliers" have higher XtX values
+
+![Top GO BP](mydata/topGO_BP_.png)
+
+![annotation counts](mydata/annocount.png)
+
+-   will eventually test for each type of annotation to see if there are more of a certain type associated with latitude or ocean temp by chance
+
+![whole genome annotation](mydata/wholegenomeanno.png)
