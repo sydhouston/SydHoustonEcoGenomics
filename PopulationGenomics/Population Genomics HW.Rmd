@@ -1,0 +1,257 @@
+---
+title: "Population Genomics HW"
+output: html_document
+date: "2026-11-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### BASH ###
+
+# Setting up the foundations and loading modules #
+```{bash}
+cd /users/s/r/srhousto/SydHoustonEcoGenomics/PopulationGenomics/mydata
+module load vcftools
+vcftools --version
+# VCF Tools Version = 0.1.16
+
+# Copying over all the files needed
+cd /gpfs1/cl/biol3990/PopulationGenomics/VCF
+cp * /users/s/r/srhousto/SydHoustonEcoGenomics/PopulationGenomics/mydata
+
+DATA_DIR=/users/s/r/srhousto/SydHoustonEcoGenomics/PopulationGenomics/mydata
+VCF=$DATA_DIR/Lottia_gigantea_pl_flt3.renamed.vcf.gz
+# Chose Lottia_gigantea_pl_flt3.renamed.vcf.gz because it is not the subsetted data 
+```
+
+# Starting with the pi Analysis #
+```{bash}
+# Made a new directory for the HW Analysis
+'/users/s/r/srhousto/SydHoustonEcoGenomics/PopulationGenomics/mydata/pi100kb'
+```
+
+# Calculating pi for the Northernmost (KRU) and Southernmost (ASU) Populations in 100kb (100,000 bases) windows
+```{bash}
+# WINDOW changed from 10,000 to 100,000
+WINDOW=100000 
+
+for KEEP in pops/KRU.txt pops/ASU.txt; do
+    POP=$(basename $KEEP .txt)
+    echo "== $POP =="
+    vcftools --gzvcf $VCF \
+        --keep $KEEP \
+        --window-pi $WINDOW \
+        --out pi100kb/$POP
+done
+
+# Checking the output
+ls pi100kb
+# ASU.log  ASU.windowed.pi  KRU.log  KRU.windowed.pi
+```
+
+### Done with bash starting in R ###
+```{r}
+library(tidyverse)
+
+setwd('/users/s/r/srhousto/SydHoustonEcoGenomics/PopulationGenomics/mydata')
+OUTDIR="/users/s/r/srhousto/SydHoustonEcoGenomics/PopulationGenomics/myresults"
+```
+
+# average the latitudes so we can ordering the sites north to south
+```{r}
+meta <- read_csv("mydata/sample_metadata.csv")
+
+sites <- meta %>%
+  group_by(Population) %>%
+  summarise(Latitude = mean(Latitude))
+```
+
+# Reading the files generated from bash earlier, "ASU.windowed.pi" and "KRU.windowed.pi" that are in the new pi100kb folder
+```{r}
+pi_files <- list.files("mydata/pi100kb", pattern = "windowed.pi$", full.names = TRUE)
+pi_files
+```
+
+#Renaming each file so its site is just its name (ex. "ASU" and "KRU"), then reading all the files and stacking then and putting the names generated before in a new coloumn called 'Site'
+```{r}
+pi <- pi_files %>%
+  set_names(str_remove(basename(pi_files), fixed(".windowed.pi"))) %>%
+  map_dfr(read_tsv, .id = "Population", show_col_types = FALSE) %>%
+  left_join(sites, by = "Population") %>%
+  mutate(Site = fct_reorder(Population, Latitude))
+```
+
+# Summarize pi for each site
+```{r}
+pi_summary <- pi %>%
+  group_by(Population, Latitude) %>%
+  summarise(n_windows = n(),
+            mean_pi   = mean(PI),
+            median_pi = median(PI),
+            .groups = "drop")
+pi_summary
+
+# ASU Mean = 0.0007231196
+# ASU Median = 0.0002478065
+# KRU Mean = 0.0005898773
+# KRU Median = 0.0001971280
+```
+
+# Pi by Site Violin Plot
+```{r}
+# Making a new out-directory folder for this assignment
+dir.create(paste0(OUTDIR,"/pi100kb"))
+
+pi_plot <- ggplot(pi, aes(Site, PI, fill = Site)) +
+  geom_violin(scale = "width", linewidth = 0.5, colour = NA) +
+  geom_boxplot(width = 0.15, outlier.shape = NA, linewidth = 0.3) +
+  scale_fill_manual(values = c("ASU" = "royalblue1", "KRU" = "indianred1")) +
+  scale_y_log10() +
+  labs(x = "Population", y = "log10(Nucleotide diversity)") +
+  theme_classic() +
+  theme(legend.position = "none") + 
+  coord_flip()
+
+ggsave(paste0(OUTDIR, "/pi100kb/pi_by_site.png"), plot = pi_plot, width = 6, height = 6)
+```
+
+# Diversity vs Latitude Dot Plot
+```{r}
+pi_lat_plot <- ggplot(pi_summary, aes(Latitude, mean_pi)) +
+  geom_point(size = 4, shape =21, fill = "royalblue1", stroke =1.5) +
+  labs(x = "Latitude (°N)", y = "Nucleotide diversity", colour = "Site") +
+  theme_classic()+
+  theme(legend.position = "none")
+  coord_flip()
+
+ggsave(paste0(OUTDIR, "/pi100kb/pi_vs_latitude.png"), plot = pi_lat_plot, width = 7, height = 7)
+```
+
+# Plotting the Diversity along the Genome (Scaffold)
+```{r}
+top_scaffold <- pi %>%
+  count(CHROM, sort = TRUE) %>%
+  slice(1) %>%
+  pull(CHROM)
+
+top_scaffold
+# "KB199650.1"
+
+scan_plot <- pi %>%
+  filter(CHROM == top_scaffold) %>%
+  ggplot(aes(BIN_START / 1e6, PI, colour = Site)) +
+  geom_line(alpha=0.8) +
+  scale_colour_manual(values = c("ASU" = "royalblue1", "KRU" = "indianred1")) +
+  labs(x = paste(top_scaffold, "position (Mb)"), y = "Nucleotide diversity",
+       colour = "Site") +
+  theme_bw()
+
+scan_plot
+
+ggsave(paste0(OUTDIR, "/pi100kb/pi_along_scaffold.png"), plot = scan_plot, width = 12, height = 6)
+```
+
+### Identifying outliers with Fst ###
+
+### Bash ### 
+
+# Made a fst100kb folder in mydata '/users/s/r/srhousto/SydHoustonEcoGenomics/PopulationGenomics/mydata/fst100kb'
+
+```{bash}
+cd $DATA_DIR
+
+module load gcc
+module load vcftools
+
+VCF=$DATA_DIR/Lottia_gigantea_pl_flt3.renamed.vcf.gz
+```
+
+# Testing the most southern and the most northern populations
+```{bash}
+POP1=ASU
+POP2=KRU
+```
+
+# Genome-Wide Fst between 2 populations
+```{bash}
+vcftools --gzvcf ${VCF} \
+  --weir-fst-pop pops/${POP1}.txt \
+  --weir-fst-pop pops/${POP2}.txt \
+  --out fst/${POP1}_vs_${POP2} \
+  2> fst100kb/${POP1}_vs_${POP2}.log
+  
+# "ASU_vs_KRU.log"
+```
+
+# Now Using a window size of 100,000 bases
+```{bash}
+vcftools --gzvcf ${VCF} \
+  --weir-fst-pop pops/${POP1}.txt \
+  --weir-fst-pop pops/${POP2}.txt \
+  --fst-window-size 100000 \
+  --fst-window-step 100000 \
+  --out fst100kb/${POP1}_vs_${POP2}_FST_100kb \
+  2> fst100kb/${POP1}_vs_${POP2}_FST_100kb.log
+
+# "ASU_vs_KRU_FST_100kb.log"
+```
+
+### R ### 
+
+# Plotting the Scan and finding outlier windows
+```{r}
+# Incase I closed R 
+OUTDIR <- "/users/s/r/srhousto/SydHoustonEcoGenomics/PopulationGenomics/myresults"
+pop1 <- "ASU"
+pop2 <- "KRU"
+
+# Using the 100kb window data 
+fst_win <- read_tsv(paste0("mydata/fst100kb/", pop1, "_vs_", pop2,
+                           "_FST_100kb.windowed.weir.fst"))
+
+```
+
+```{r}
+add_genome_pos <- function(df) {
+  scaffolds <- df %>% 
+    group_by(CHROM) %>% 
+    summarise(length = max(POS)) %>% ## length = max position within a chromosome
+    arrange(match(CHROM, unique(df$CHROM))) %>% ##make sure each is unique, arranged
+    mutate(offset = cumsum(as.numeric(length)) - length, ###cumulatively number (helps with labels)
+           shade  = factor(row_number() %% 2))    ##value for alternating colour 
+  df %>%
+    left_join(scaffolds, by = "CHROM") %>% ##join this data by given data with CHROM
+    mutate(genome_pos = offset + POS) ###cumalative genome pos 
+}
+
+fst_win <- fst_win %>%
+  mutate(POS = (BIN_START + BIN_END) / 2) %>% 
+  add_genome_pos() ## this is our new function
+
+```
+
+```{r}
+# empirical outlier threshold: the top 1% of windows
+fst_cut <- quantile(fst_win$WEIGHTED_FST, probs = 0.99)
+fst_cut
+
+fst_win <- mutate(fst_win, outlier = WEIGHTED_FST >= fst_cut)
+
+ggplot(fst_win, aes(x = genome_pos / 1e6, y = WEIGHTED_FST)) +
+  geom_point(aes(colour = shade), size = 0.8) +
+  geom_point(data = filter(fst_win, outlier), colour = "red", size = 1.2) +
+  geom_hline(yintercept = fst_cut, linetype = "dashed") +
+  scale_colour_manual(values = c("grey35", "grey70"), guide = "none") +
+  labs(x = "Position along the genome (Mb; scaffolds end to end)",
+       y = "Weighted FST (100-kb windows)",
+       title = paste(pop1, "vs", pop2)) +
+  theme_classic()
+
+ggsave(paste0(OUTDIR, "/fst100kb/fst_scan_", pop1, "_vs_", pop2, "_100kb.png"),
+       width = 10, height = 4)
+```
+
+
+#### NEXT = Section 3.5
