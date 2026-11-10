@@ -253,5 +253,206 @@ ggsave(paste0(OUTDIR, "/fst100kb/fst_scan_", pop1, "_vs_", pop2, "_100kb.png"),
        width = 10, height = 4)
 ```
 
+# Saving the outliers to a table
+```{r}
+fst_outliers <- fst_win %>%
+  filter(outlier) %>%
+  arrange(desc(WEIGHTED_FST)) %>%
+  select(CHROM, BIN_START, BIN_END, N_VARIANTS, WEIGHTED_FST)
 
-#### NEXT = Section 3.5
+head(fst_outliers, 10)
+write_tsv(fst_outliers, paste0("myresults/fst100kb/", pop1, "_vs_", pop2, "_FST_100kb_outliers.txt"))
+```
+
+#### PCA ###
+
+# Started with Linkage Pruning
+
+```{bash}
+# Made a new folder called popstructure100kb in myresults
+DATA_DIR=/gpfs1/home/s/r/srhousto/SydHoustonEcoGenomics/PopulationGenomics/mydata
+VCF=$DATA_DIR/Lottia_gigantea_pl_flt3.renamed.vcf.gz
+module load plink
+plink --version
+#v1.9.0-b.7.7
+```
+
+# Using plink to prune the data (try to eliminate linked SNPs), changed to the 100kb window
+```{bash}
+plink --vcf $VCF --double-id --allow-extra-chr \
+  --set-missing-var-ids @:# \
+  --indep-pairwise 100kb 1 0.2 \
+  --out Lg_LD_100kb
+  
+# Original SNPs: 1,821,750
+# SNPs removed: 1,296,627
+# SNPs kept: 525,123
+```
+
+# Making the PCA
+```{bash}
+plink --vcf $VCF --double-id --allow-extra-chr --set-missing-var-ids @:# \
+  --extract Lg_LD_100kb.prune.in \
+  --make-bed --pca --out Lg_LD_100kb
+  
+# 553 individuals included across all populations.
+# Output = Lg_LD_100kb.eigenvec and Lg_LD_100kb.eigenval
+```
+
+### R ### 
+
+```{r}
+library(tidyverse)
+setwd('~/SydHoustonEcoGenomics/PopulationGenomics/mydata')
+
+# the .eigenvec file has no column names, so col_names = FALSE (they become X1, X2, ...)
+pca <- read_table("mydata/Lg_LD_100kb.eigenvec", col_names = FALSE)
+
+# the .eigenval file is just a list of numbers, so scan() reads it into a vector
+eigenval <- scan("mydata/Lg_LD_100kb.eigenval")
+
+# columns 1 and 2 are the family and individual IDs, which are identical
+# thanks to --double-id, so drop column 2 (remember: [rows, columns])
+pca <- pca[, -2]
+
+# rename the columns: the first is the sample ID, the rest are PC1, PC2, ...
+# paste0() joins text and numbers, e.g. paste0("PC", 1:3) gives "PC1" "PC2" "PC3"
+names(pca)[1] <- "ID"
+names(pca)[2:ncol(pca)] <- paste0("PC", 1:(ncol(pca) - 1))
+
+head(pca)
+```
+
+```{r}
+meta <- read_csv("mydata/sample_metadata.csv")
+# Adding the metadata to the PCA results
+pca <- left_join(pca, meta, by = "ID")
+sum(is.na(pca$Site))
+# Prints 0 (makes sure everyone is matched correctly)
+```
+
+# Calculating PVE
+
+```{r}
+# convert the eigenvalues to a percentage variance explained (pve)
+pve <- data.frame(PC = seq_along(eigenval),
+                  pve = eigenval / sum(eigenval) * 100)
+
+# make a folder for our figures
+
+pve_plot <- ggplot(pve, aes(PC, pve)) +
+  geom_col() +
+  labs(x = "Principal component", y = "Percentage variance explained") +
+  theme_bw()
+pve_plot
+
+OUTDIR="~/SydHoustonEcoGenomics/PopulationGenomics/myresults/popstructure100kb"
+
+ggsave(pve_plot, file=paste0(OUTDIR, "/variance_0.2_100kb.png"), width = 6, height = 4)
+```
+
+
+# Plotting the PCA, changed it to filter to only include ASU and KRU
+```{r}
+HW_pca <- pca %>% filter(Site %in% c("Bahía Asunción", "Kruse Ranch"))
+# Had to make it the full names of the sites (checked inside the pca file to do so)
+
+# axis labels with the % variance explained, e.g. "PC1 (4.2%)"
+pc1_lab <- paste0("PC1 (", round(pve$pve[1], 1), "%)")
+pc2_lab <- paste0("PC2 (", round(pve$pve[2], 1), "%)")
+
+HW_pca_plot <- ggplot(HW_pca, aes(PC1, PC2, colour = Site)) +
+  geom_point(size = 2, alpha = 0.7) +
+  scale_colour_viridis_d(end = 0.9) +
+  labs(x = pc1_lab, y = pc2_lab, colour = "Site (north to south)") +
+  theme_bw()
+
+OUTDIR="~/SydHoustonEcoGenomics/PopulationGenomics/myresults/popstructure100kb"
+
+ggsave(HW_pca_plot, file = paste0(OUTDIR, "/Lg_0.2_pca_100kb.png"), width = 8, height = 6)
+
+```
+
+### BASH ###
+
+# Doing XtX but with the full dataset not the subsetted one
+
+## Starting w Xtx
+```{r}
+# Copied over the file Lottia_bp_2_summary_pi_xtx.out from the BaypassHomework file in terminal, it is now located in mydata
+
+# 4.6
+
+snps <- read_tsv("mydata/baypass/Lottia.baypass.snps.txt")
+
+snps$MRK<-rownames(snps)
+snps$MRK<-as.numeric(snps$MRK)
+
+npop <- 19
+
+# Same as before but with the new file 
+xtx <- read.table("mydata/Lottia_bp_2_summary_pi_xtx.out", header = TRUE, check.names = FALSE) %>%
+  left_join(snps, by = "MRK") %>%
+  mutate(lp_high   = pchisq(XtXst, npop, lower.tail = FALSE, log.p = TRUE),   #
+         lp_low    = pchisq(XtXst, npop, lower.tail = TRUE,  log.p = TRUE),   
+         direction = if_else(lp_high < lp_low, "high", "low"),
+         log10_p   = -(pmin(lp_high, lp_low) + log(2)) / log(10),             
+         pval      = 10^(-log10_p),
+         qval      = p.adjust(pval, method = "BH"))
+```
+
+# Plotting the xtx results
+```{r}
+OUTDIR="/users/s/r/srhousto/SydHoustonEcoGenomics/PopulationGenomics/myresults/HWbaypass"
+
+ggplot(xtx, aes(x = pval)) +
+  geom_histogram(breaks = seq(0, 1, by = 0.025), fill = "grey60", colour = "white") +
+  labs(x = "p-value", y = "no. of SNPs") +
+  theme_classic()
+
+ggsave(paste0(OUTDIR,"/HWbaypass_xtx_pvalues.png"), width = 5, height = 4)
+```
+
+```{r}
+##same helper tool as earlier with FST
+add_genome_pos <- function(df) {
+  scaffolds <- df %>% 
+    group_by(CHROM) %>% ##group by CHROM
+    summarise(length = max(POS)) %>% ## length = max position within a chromosome
+    arrange(match(CHROM, unique(df$CHROM))) %>% ##make sure each is unique, arranged
+    mutate(offset = cumsum(as.numeric(length)) - length, ###cumulatively number (helps with labels)
+           shade  = factor(row_number() %% 2))    ##value for alternating colour 
+  df %>%
+    left_join(scaffolds, by = "CHROM") %>% ##join this data by given data with CHROM
+    mutate(genome_pos = offset + POS) ###cumalative genome pos 
+}
+
+
+xtx <- xtx %>%
+  add_genome_pos()     ##recall above if reloaded R
+
+sum(xtx$outlier)                           
+
+threshold <- quantile(xtx$qval, 0.001)   # top 0.1% (smallest q)
+
+ggplot(xtx, aes(genome_pos / 1e6, -log10(qval))) +
+  geom_point(aes(colour = shade), size = 0.4) +
+  geom_hline(yintercept = -log10(threshold), linetype = "dashed", colour = "red") +
+  scale_colour_manual(values = c("grey20", "grey80"), guide = "none") +
+  labs(x = "Genome pos (Mb)", y = "-log10(q)") +
+  theme_classic()
+
+ggsave(paste0(OUTDIR,"/HWbaypass_xtx_scan.png"), width = 10, height = 5)
+```
+
+```{r}
+xtx_outliers <- xtx %>%
+  filter(qval < threshold) %>%
+  arrange(desc(qval)) %>%
+  select(MRK, CHROM, POS, M_XtX, XtXst, pval, qval)
+
+head(xtx_outliers, 10)
+
+write_tsv(xtx_outliers, "mydata/HWbaypass_xtx_outliers.txt")
+```
+
