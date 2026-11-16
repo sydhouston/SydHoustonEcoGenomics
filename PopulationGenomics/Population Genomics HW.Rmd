@@ -129,28 +129,110 @@ pi_lat_plot <- ggplot(pi_summary, aes(Latitude, mean_pi)) +
 ggsave(paste0(OUTDIR, "/pi100kb/pi_vs_latitude.png"), plot = pi_lat_plot, width = 7, height = 7)
 ```
 
+#Trying to plot PI across the genome, from FST code
+
+```{r}
+# Just taking the 2 sites I want for my analysis
+chosenSites <- pi %>%
+  filter(Site %in% c("ASU", "KRU"))
+
+# adding the genome_pos coloum
+pi2 <- chosenSites |> mutate(POS = (BIN_START + BIN_END) / 2) %>%
+add_genome_pos()
+
+# taking out the top 1% of the pi
+pi_cut <- quantile(pi2$PI, probs = 0.99, na.rm = TRUE)
+pi2 <- mutate(pi2, outlier = PI >= pi_cut)
+
+# plotting it (using facet wrap so that they are next to eachother and not ontop of eachother)
+pi_across_genome <- ggplot(pi2, aes(genome_pos / 1e6, PI)) +
+  geom_point(aes(colour = shade), size = 0.4) +
+  geom_hline(yintercept = pi_cut,
+             linetype = "dashed", colour = "red") +
+  scale_colour_manual(values = c("grey20", "grey80"),
+                      guide = "none") +
+  labs(x = "Genome position (Mb)", y = "Pi (Nucleotide Diveristy") +
+  theme_classic() +
+  facet_wrap(~Site)
+
+pi_across_genome
+
+ggsave(pi_across_genome, file=paste0(OUTDIR, "/final_pi_100kb_chart.png"), width = 9, height = 8)
+
+```
+
 # Plotting the Diversity along the Genome (Scaffold)
 ```{r}
+# Find the scaffold with the most 100-kb windows
 top_scaffold <- pi %>%
   count(CHROM, sort = TRUE) %>%
   slice(1) %>%
   pull(CHROM)
 
 top_scaffold
-# "KB199650.1"
+"KB199650.1"
 
+# Plot nucleotide diversity along that scaffold
 scan_plot <- pi %>%
   filter(CHROM == top_scaffold) %>%
-  ggplot(aes(BIN_START / 1e6, PI, colour = Site)) +
-  geom_line(alpha=0.8) +
-  scale_colour_manual(values = c("ASU" = "royalblue1", "KRU" = "indianred1")) +
-  labs(x = paste(top_scaffold, "position (Mb)"), y = "Nucleotide diversity",
+  ggplot(aes(x = BIN_START / 1e6, y = PI,
+             colour = Site, group = Site)) +
+  geom_line(alpha = 0.8) +
+  scale_colour_manual(values = c("ASU" = "royalblue1",
+                                 "KRU" = "indianred1")) +
+  labs(x = paste(top_scaffold, "position (Mb)"),
+       y = "Nucleotide diversity (100-kb windows)",
        colour = "Site") +
   theme_bw()
 
 scan_plot
 
-ggsave(paste0(OUTDIR, "/pi100kb/pi_along_scaffold.png"), plot = scan_plot, width = 12, height = 6)
+top_scaffold
+# "KB199650.1"
+```
+
+# I tried to make a whole genome pi plot, first by altering the scaffold code to include all the data and not just the top scaffold, and then by altering the FST scan code to plot it like a scatterplot, but both plots were too messy overall because there were too many points and i decided it was better to just use a violin plot alongside the mean and median data. 
+
+```{r}
+# From the FST section : 
+add_genome_pos <- function(df) {
+  scaffolds <- df %>% 
+    group_by(CHROM) %>% ##group by CHROM
+    summarise(length = max(POS)) %>% ## length = max position within a chromosome
+    arrange(match(CHROM, unique(df$CHROM))) %>% ##make sure each is unique, arranged
+    mutate(offset = cumsum(as.numeric(length)) - length, ###cumulatively number (helps with labels)
+           shade  = factor(row_number() %% 2))    ##value for alternating colour 
+  df %>%
+    left_join(scaffolds, by = "CHROM") %>% ##join this data by given data with CHROM
+    mutate(genome_pos = offset + POS) ###cumalative genome pos 
+}
+
+#pi <- pi %>%
+  #mutate(POS = (BIN_START + BIN_END) / 2) %>% 
+  #scan_plot <- pi  %>%
+  #ggplot(aes(genome_pos / 1e6, PI, colour = Site)) +
+  #geom_line(alpha=0.4, size=0.5) +
+  #scale_colour_manual(values = c("ASU" = "royalblue1", "KRU" = "indianred1")) +
+  #labs(x = "Position Along the Genome (Mb)", y = "Nucleotide diversity",
+       #colour = "Site") +
+  #theme_bw()
+
+#scan_plot
+
+#ggsave(paste0(OUTDIR, "/pi100kb/pi_along_topscaffold.png"), plot = scan_plot, width = 12, height = 6)
+
+# Using the Fst Scan code but for Pi to see if it improves the readability of the whole genome Pi data? (Did not end up including in paper)
+
+#ggplot(pi, aes(x = genome_pos / 1e6, y = PI)) +
+  #geom_point(aes(colour = Site), size = 0.8, alpha = 0.25) +
+  #scale_colour_manual(values = c("ASU" = "royalblue1",
+                                 #"KRU" = "indianred1")) +
+  #labs(x = "Position along the genome (Mb; scaffolds end to end)",
+       #y = "Nucleotide diversity (100-kb windows)",
+       #title = "ASU vs KRU") +
+  #theme_classic() + facet_wrap(~Site, ncol = 1)
+
+# It doesnt. 
 ```
 
 ### Identifying outliers with Fst ###
@@ -454,5 +536,129 @@ xtx_outliers <- xtx %>%
 head(xtx_outliers, 10)
 
 write_tsv(xtx_outliers, "mydata/HWbaypass_xtx_outliers.txt")
+```
+
+# Top GO
+
+```{r}
+library(tidyverse)
+library(topGO)
+
+outlier_file <- "mydata/Lottia_bp_2_summary_pi_xtx.out"
+map_file <- "mydata/100kbGO/lottia_gene2GO.map"
+snp2gene_file <- "mydata/100kbGO/lottia_snp2gene_genic.tsv" 
+
+###read in GO terms 
+gene2GO <- readMappings(map_file)
+length(gene2GO)          # how many genes have at least one GO term? - 13710
+gene2GO[1:2]             # what does an entry look like?
+
+##creating the gene universe - all genes in experiment 
+snp2gene <- read.delim(snp2gene_file, header = FALSE,
+                       col.names = c("CHROM", "POS", "GeneId"))
+universe <- unique(snp2gene$GeneId)
+length(universe) # 21314
+
+mean(universe %in% names(gene2GO))    # proportion of universe genes with GO terms
+# 0.592709
+
+## Genes that contain at least one outlier SNP.
+outliers   <- read.table(outlier_file, header = TRUE)
+hits       <- merge(outliers[, c("CHROM", "POS")], snp2gene, by = c("CHROM", "POS"))
+candidates <- unique(hits$GeneId)
+
+##how many candiate genes do we have?
+cat("Outlier SNPs:", nrow(outliers),
+    "| outlier SNPs inside genes:", nrow(unique(hits[, c("CHROM", "POS")])),
+    "| candidate genes:", length(candidates), "\n")
+
+# Outlier SNPs: 1822 | outlier SNPs inside genes: 699 | candidate genes: 267
+
+geneList <- factor(as.integer(universe %in% candidates), levels = c(0, 1))
+names(geneList) <- universe
+table(geneList)
+geneList 
+# 0 = background 1 = candidate genes
+#    0     1 
+# 21047   267 
+
+## nodeSize = 10 ignores GO terms with fewer than 10 annotated genes (we can add a max here if we have very broad terms), keeping 10
+GOdata <- new("topGOdata",
+              ontology = "BP", ##biological processes, what about other options?
+              allGenes = geneList,
+              annot    = annFUN.gene2GO,
+              gene2GO  = gene2GO,
+              nodeSize = 10)
+GOdata
+# 267 from array, 107 can be used in analysis
+
+## Test for enrichment 
+result <- runTest(GOdata, algorithm = "weight01", statistic = "fisher")
+result
+#  Annotated genes: 8897 
+#  Significant genes: 107 
+#  Min. no. of genes annotated to a GO: 10 
+#  Nontrivial nodes: 618 
+```
+
+## Results table
+
+```{r}
+## Annotated   = universe genes in the term
+## Significant = candidate genes in the term
+## Expected    = candidates expected by chance
+res <- GenTable(GOdata, weight01 = result, orderBy = "weight01",
+                topNodes = 50, numChar = 1000)
+res$p <- as.numeric(sub("< ", "", res$weight01))   
+head(res, 10)
+
+
+##write our outliers
+write.csv(res, "topGO_BP_xtx.csv", row.names = FALSE)
+
+## Which candidate genes are in the top term?
+top_term <- res$GO.ID[1]
+intersect(genesInTerm(GOdata, top_term)[[1]], sigGenes(GOdata))
+
+## GeneRatio = candidate genes in the term / all candidates with GO terms
+plot_df <- subset(res, p < 0.05)
+if (nrow(plot_df) == 0) {
+  message("No terms with p < 0.05 - plotting the top 15 anyway (none significant)")
+  plot_df <- head(res, 15)
+}
+plot_df <- head(plot_df, 20)
+plot_df$GeneRatio <- plot_df$Significant / numSigGenes(GOdata)
+plot_df$logP      <- -log10(plot_df$p)
+## wrap long GO term names over two lines so the text doesn't dominate the plot
+plot_df$Label <- vapply(plot_df$Term, function(t) paste(strwrap(t, width = 40), collapse = "\n"),
+                        character(1))
+plot_df$Label <- reorder(plot_df$Label, plot_df$GeneRatio)
+
+p1 <- ggplot(plot_df, aes(x = Label, y = GeneRatio, size = Significant, fill = logP)) +
+  geom_segment(aes(y = 0, yend = GeneRatio, x = Label, xend = Label),
+               colour = "lightblue", linewidth = 1.5, alpha = 0.5) +
+  geom_point(shape = 21, alpha = 0.8, colour = "black") +
+  coord_flip() +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 4)) +
+  theme_bw(base_size = 12) +
+  theme(axis.text.y = element_text(colour = "black", lineheight = 0.9),
+        plot.title.position = "plot",
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  scale_fill_gradientn(colours = c("#2b83ba", "#fdae61", "#d7191c"),
+                       name = "-log10(p value)") +
+  scale_size(range = c(3, 10), name = "Count") +
+  ylab("Gene Ratio") + xlab("")
+
+
+ggsave("topGO_BP_100kb.png", p1,
+       width = 9, height = max(4, 1 + 0.42 * nrow(plot_df)), dpi = 300)
+
+```
+
+
+
+```{r}
+
 ```
 
