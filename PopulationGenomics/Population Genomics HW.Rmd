@@ -544,7 +544,7 @@ write_tsv(xtx_outliers, "mydata/HWbaypass_xtx_outliers.txt")
 library(tidyverse)
 library(topGO)
 
-outlier_file <- "mydata/Lottia_bp_2_summary_pi_xtx.out"
+outlier_file <- "mydata/HWbaypass_xtx_outliers.txt"
 map_file <- "mydata/100kbGO/lottia_gene2GO.map"
 snp2gene_file <- "mydata/100kbGO/lottia_snp2gene_genic.tsv" 
 
@@ -614,7 +614,7 @@ head(res, 10)
 
 
 ##write our outliers
-write.csv(res, "topGO_BP_xtx.csv", row.names = FALSE)
+write.csv(res, "topGO_BP_HWxtx.csv", row.names = FALSE)
 
 ## Which candidate genes are in the top term?
 top_term <- res$GO.ID[1]
@@ -651,7 +651,7 @@ p1 <- ggplot(plot_df, aes(x = Label, y = GeneRatio, size = Significant, fill = l
   ylab("Gene Ratio") + xlab("")
 
 
-ggsave("topGO_BP_100kb.png", p1,
+ggsave("topGO_BP_HW100kb2.png", p1,
        width = 9, height = max(4, 1 + 0.42 * nrow(plot_df)), dpi = 300)
 
 ```
